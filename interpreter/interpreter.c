@@ -65,9 +65,17 @@ void mini_puti(struct VMContext* ctx, const uint32_t instr) {
 }
 
 void mini_add(struct VMContext* ctx, const uint32_t instr) {
+    const uint8_t r0 = EXTRACT_B1(instr);
+    const uint8_t r1 = EXTRACT_B2(instr);
+    const uint8_t r2 = EXTRACT_B3(instr);
+    ctx->r[r0].value = ctx->r[r1].value + ctx->r[r2].value;
 }
 
 void mini_sub(struct VMContext* ctx, const uint32_t instr) {
+    const uint8_t r0 = EXTRACT_B1(instr);
+    const uint8_t r1 = EXTRACT_B2(instr);
+    const uint8_t r2 = EXTRACT_B3(instr);
+    ctx->r[r0].value = ctx->r[r2].value + ctx->r[r1].value;
 }
 
 void mini_gt(struct VMContext* ctx, const uint32_t instr) {
