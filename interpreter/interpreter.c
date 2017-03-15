@@ -198,7 +198,7 @@ uint32_t* read_bytecode(const char* filename) {
 
     uint32_t *bytecode = (uint32_t*) malloc(sz);
     assert(bytecode != NULL);
-    assert(fread(bytecode, 1, sz, fp) != sz);
+    assert(fread(bytecode, 1, sz, fp) == sz);
 
     fclose(fp);
     return bytecode;
