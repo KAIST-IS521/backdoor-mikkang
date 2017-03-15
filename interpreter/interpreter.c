@@ -59,6 +59,9 @@ void mini_move(struct VMContext* ctx, const uint32_t instr) {
 }
 
 void mini_puti(struct VMContext* ctx, const uint32_t instr) {
+    const uint8_t r0 = EXTRACT_B1(instr);
+    const uint8_t imm = EXTRACT_B2(instr);
+    ctx->r[r0].value = 0x000000ff & imm;
 }
 
 void mini_add(struct VMContext* ctx, const uint32_t instr) {
