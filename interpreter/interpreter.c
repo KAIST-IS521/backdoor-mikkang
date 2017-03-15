@@ -20,6 +20,16 @@ void check_addr_range(uint32_t addr) {
     }
 }
 
+uint8_t read_mem(uint32_t addr) {
+    check_addr_range(addr);
+    return *(heap + addr);
+}
+
+void write_mem(uint32_t addr, uint8_t val) {
+    check_addr_range(addr);
+    *(heap + addr) = val;
+}
+
 // Implement Opcode function
 void mini_halt(struct VMContext* ctx, const uint32_t instr) {
     is_running = false;
