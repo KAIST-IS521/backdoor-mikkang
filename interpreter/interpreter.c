@@ -55,7 +55,7 @@ void mini_store(struct VMContext* ctx, const uint32_t instr) {
 void mini_move(struct VMContext* ctx, const uint32_t instr) {
     const uint8_t r0 = EXTRACT_B1(instr);
     const uint8_t r1 = EXTRACT_B2(instr);
-    ctx->r[r1].value = ctx->r[r0].value;
+    ctx->r[r0].value = ctx->r[r1].value;
 }
 
 void mini_puti(struct VMContext* ctx, const uint32_t instr) {
@@ -75,7 +75,7 @@ void mini_sub(struct VMContext* ctx, const uint32_t instr) {
     const uint8_t r0 = EXTRACT_B1(instr);
     const uint8_t r1 = EXTRACT_B2(instr);
     const uint8_t r2 = EXTRACT_B3(instr);
-    ctx->r[r0].value = ctx->r[r2].value - ctx->r[r1].value;
+    ctx->r[r0].value = ctx->r[r1].value - ctx->r[r2].value;
 }
 
 void mini_gt(struct VMContext* ctx, const uint32_t instr) {
@@ -208,7 +208,6 @@ int main(int argc, char** argv) {
     VMContext vm;
     Reg r[NUM_REGS];
     FunPtr f[NUM_FUNCS];
-    uint32_t* pc;
 
     // There should be at least one argument.
     if (argc < 2) usageExit();
@@ -221,8 +220,7 @@ int main(int argc, char** argv) {
     initVMContext(&vm, NUM_REGS, NUM_FUNCS, r, f, read_bytecode(argv[1]));
 
     while (is_running) {
-        // TODO: Read 4-byte bytecode, and set the pc accordingly
-        stepVMContext(&vm, &pc);
+        stepVMContext(&vm);
     }
 
     // Zero indicates normal termination.

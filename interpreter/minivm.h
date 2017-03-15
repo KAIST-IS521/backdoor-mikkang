@@ -80,7 +80,7 @@ void initVMContext(struct VMContext* ctx,
 
 // Reads an instruction, executes it, then steps to the next instruction.
 // stepVMContext :: VMContext -> uint32_t** -> Effect()
-void stepVMContext(struct VMContext* ctx, uint32_t** pc);
+void stepVMContext(struct VMContext* ctx);
 
 
 //---------------------------------------------------------

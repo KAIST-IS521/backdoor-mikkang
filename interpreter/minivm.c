@@ -40,15 +40,14 @@ void initVMContext(struct VMContext* ctx, const uint32_t numRegs,
 
 // Reads an instruction, executes it, then steps to the next instruction.
 // stepVMContext :: VMContext -> uint32_t** -> Effect()
-void stepVMContext(struct VMContext* ctx, uint32_t** pc) {
+void stepVMContext(struct VMContext* ctx) {
     // Read a 32-bit bytecode instruction.
-    uint32_t instr = **pc;
+    uint32_t instr = *(ctx->bytecode + ctx->pc);
 
     // Dispatch to an opcode-handler.
     dispatch(ctx, instr);
 
     // Increment to next instruction.
-    (*pc)++;
-    ctx->pc = pc;
+    ctx->pc++;
 }
 
