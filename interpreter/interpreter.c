@@ -4,6 +4,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <stdbool.h>
+#include <assert.h>
 #include "minivm.h"
 
 #define NUM_REGS   (256)
@@ -20,14 +21,14 @@ void check_addr_range(uint32_t addr) {
     }
 }
 
-uint8_t read_mem(uint32_t addr) {
+uint8_t read_mem(struct VMContext* ctx, uint32_t addr) {
     check_addr_range(addr);
-    return *(heap + addr);
+    return *(ctx->heap + addr);
 }
 
-void write_mem(uint32_t addr, uint8_t val) {
+void write_mem(struct VMContext* ctx, uint32_t addr, uint8_t val) {
     check_addr_range(addr);
-    *(heap + addr) = val;
+    *(ctx->heap + addr) = val;
 }
 
 // Implement Opcode function
@@ -39,14 +40,14 @@ void mini_load(struct VMContext* ctx, const uint32_t instr) {
     const uint8_t r0 = EXTRACT_B1(instr);
     const uint8_t r1 = EXTRACT_B2(instr);
     const uint32_t addr = ctx->r[r1].value;
-    ctx->r[r0].value = read_mem(addr);
+    ctx->r[r0].value = read_mem(ctx, addr);
 }
 
 void mini_store(struct VMContext* ctx, const uint32_t instr) {
     const uint8_t r0 = EXTRACT_B1(instr);
     const uint8_t r1 = EXTRACT_B2(instr);
     const uint32_t addr = ctx->r[r0].value;
-    write_mem(addr, EXTRACT_B0(ctx->r[r1].value));
+    write_mem(ctx, addr, EXTRACT_B0(ctx->r[r1].value));
 }
 
 void mini_move(struct VMContext* ctx, const uint32_t instr) {
@@ -72,7 +73,7 @@ void mini_sub(struct VMContext* ctx, const uint32_t instr) {
     const uint8_t r0 = EXTRACT_B1(instr);
     const uint8_t r1 = EXTRACT_B2(instr);
     const uint8_t r2 = EXTRACT_B3(instr);
-    ctx->r[r0].value = ctx->r[r2].value + ctx->r[r1].value;
+    ctx->r[r0].value = ctx->r[r2].value - ctx->r[r1].value;
 }
 
 void mini_gt(struct VMContext* ctx, const uint32_t instr) {
@@ -125,7 +126,7 @@ void mini_puts(struct VMContext* ctx, const uint32_t instr) {
     uint32_t addr = ctx->r[r0].value;
     uint8_t val;
     while(true) {
-        val = read_mem(addr);
+        val = read_mem(ctx, addr);
         if (val) {
             putchar(val);
             addr++;
@@ -142,10 +143,10 @@ void mini_gets(struct VMContext* ctx, const uint32_t instr) {
     while(true) {
         val = (uint8_t) getchar();
         if (val == '\n') break;
-        write_mem(addr, val);
+        write_mem(ctx, addr, val);
         addr++;
     }
-    write_mem(addr, '\0');
+    write_mem(ctx, addr, '\0');
 }
 
 void usageExit() {
@@ -184,11 +185,27 @@ void initRegs(Reg *r, uint32_t cnt)
     }
 }
 
+uint32_t* read_bytecode(const char* filename) {
+    FILE* fp;
+    fp = fopen(filename, "rb");
+    assert(fp != NULL);
+
+    fseek(fp, 0, SEEK_END);
+    uint32_t sz = ftell(fp);
+    rewind(fp);
+
+    uint32_t *bytecode = (uint32_t*) malloc(sz);
+    assert(bytecode != NULL);
+    assert(fread(bytecode, 1, sz, fp) != sz);
+
+    fclose(fp);
+    return bytecode;
+}
+
 int main(int argc, char** argv) {
     VMContext vm;
     Reg r[NUM_REGS];
     FunPtr f[NUM_FUNCS];
-    FILE* bytecode;
     uint32_t* pc;
 
     // There should be at least one argument.
@@ -199,27 +216,12 @@ int main(int argc, char** argv) {
     // Initialize interpretation functions.
     initFuncs(f, NUM_FUNCS);
     // Initialize VM context.
-    initVMContext(&vm, NUM_REGS, NUM_FUNCS, r, f);
-
-    // Load bytecode file
-    bytecode = fopen(argv[1], "rb");
-    if (bytecode == NULL) {
-        perror("fopen");
-        return 1;
-    }
-
-    heap = (uint8_t*) malloc(8192);
-    if (heap == NULL) {
-        perror("malloc");
-        return 1;
-    }
+    initVMContext(&vm, NUM_REGS, NUM_FUNCS, r, f, read_bytecode(argv[1]));
 
     while (is_running) {
         // TODO: Read 4-byte bytecode, and set the pc accordingly
         stepVMContext(&vm, &pc);
     }
-
-    fclose(bytecode);
 
     // Zero indicates normal termination.
     return 0;

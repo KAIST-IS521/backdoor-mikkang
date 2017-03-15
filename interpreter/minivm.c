@@ -5,6 +5,8 @@
 //-----------------------------------------------------------------------------
 
 #include "minivm.h"
+#include <stdlib.h>
+#include <assert.h>
 
 
 //---------------------------------------------------------
@@ -21,12 +23,18 @@ void dispatch(struct VMContext* ctx, const uint32_t instr) {
 
 // Initializes a VMContext in-place.
 // initVMContext :: VMContext -> uint32_t -> uint32_t -> [Reg] -> [FunPtr] -> Effect()
-void initVMContext(struct VMContext* ctx, const uint32_t numRegs, const uint32_t numFuns, Reg* registers, FunPtr* funtable) {
+void initVMContext(struct VMContext* ctx, const uint32_t numRegs,
+                   const uint32_t numFuns, Reg* registers,
+                   FunPtr* funtable, uint32_t* bytecode) 
+{
     ctx->numRegs    = numRegs;
     ctx->numFuns    = numFuns;
     ctx->r          = registers;
     ctx->funtable   = funtable;
     ctx->pc         = 0;
+    ctx->heap       = (uint8_t*) malloc(8192);
+    assert(ctx->heap != NULL);
+    ctx->bytecode   = bytecode;
 }
 
 
