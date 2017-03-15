@@ -38,6 +38,7 @@ typedef struct VMContext {
     uint32_t numFuns;
     Reg* r;           // Ptr to register array.
     FunPtr* funtable; // Ptr to a funptr table.
+    uint32_t* pc; // program counter
 } VMContext;
 
 

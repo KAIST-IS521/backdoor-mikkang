@@ -109,6 +109,10 @@ void mini_eq(struct VMContext* ctx, const uint32_t instr) {
 }
 
 void mini_ite(struct VMContext* ctx, const uint32_t instr) {
+    const uint8_t r0 = EXTRACT_B1(instr);
+    const uint8_t imm1 = EXTRACT_B2(instr);
+    const uint8_t imm2 = EXTRACT_B3(instr);
+    if (ctx
 }
 
 void mini_jump(struct VMContext* ctx, const uint32_t instr) {

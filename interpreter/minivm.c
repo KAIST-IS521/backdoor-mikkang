@@ -26,6 +26,7 @@ void initVMContext(struct VMContext* ctx, const uint32_t numRegs, const uint32_t
     ctx->numFuns    = numFuns;
     ctx->r          = registers;
     ctx->funtable   = funtable;
+    ctx->pc         = 0;
 }
 
 
@@ -40,5 +41,6 @@ void stepVMContext(struct VMContext* ctx, uint32_t** pc) {
 
     // Increment to next instruction.
     (*pc)++;
+    ctx->pc = pc;
 }
 
