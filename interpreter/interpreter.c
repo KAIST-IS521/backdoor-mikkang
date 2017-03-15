@@ -34,9 +34,9 @@ void mini_load(struct VMContext* ctx, const uint32_t instr) {
     const uint8_t r1 = EXTRACT_B2(instr);
     const uint32_t addr = ctx->r[r1].value;
     if (check_addr_range(addr)) {
-    uint32_t val = NULL;
-    memcpy(val, heap+addr, 1);
-    ctx->r[r0].value = val;
+        uint32_t val = NULL;
+        memcpy(val, heap+addr, 1);
+        ctx->r[r0].value = val;
     }
     else
         exit_interpreter();
@@ -46,7 +46,7 @@ void mini_store(struct VMContext* ctx, const uint32_t instr) {
     const uint8_t r0 = EXTRACT_B1(instr);
     const uint8_t r1 = EXTRACT_B2(instr);
     const uint32_t addr = ctx->r[r0].value;
-    if (check_addr_range(addr)) 
+    if (check_addr_range(addr))
         memcpy(heap+addr, EXTRACT_B0(ctx->r[r1].value), 1);
     else
         exit_interpreter();
