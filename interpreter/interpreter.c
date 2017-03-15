@@ -13,13 +13,23 @@
 static bool is_running = true;
 void *heap = NULL;
 
-// Implement Opcode function
-void mini_halt(struct VMContext* ctx, const uint32_t instr) {
+bool check_addr_range(uint32_t addr) {
+    if (addr <= 8192)
+        return true;
+    else
+        return false;
+}
+
+void exit_interpreter() {
     is_running = false;
 }
 
-void mini_load(struct VMContext* ctx, const uint32_t instr) {
+// Implement Opcode function
+void mini_halt(struct VMContext* ctx, const uint32_t instr) {
+    exit_interpreter();
+}
 
+void mini_load(struct VMContext* ctx, const uint32_t instr) {
 }
 
 void mini_store(struct VMContext* ctx, const uint32_t instr) {
