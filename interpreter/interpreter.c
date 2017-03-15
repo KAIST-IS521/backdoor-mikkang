@@ -112,10 +112,15 @@ void mini_ite(struct VMContext* ctx, const uint32_t instr) {
     const uint8_t r0 = EXTRACT_B1(instr);
     const uint8_t imm1 = EXTRACT_B2(instr);
     const uint8_t imm2 = EXTRACT_B3(instr);
-    if (ctx
+    if (ctx->r[r0].value > 0)
+        ctx->pc = imm1;
+    else
+        ctx->pc = imm2;
 }
 
 void mini_jump(struct VMContext* ctx, const uint32_t instr) {
+    const uint8_t imm = EXTRACT_B1(instr);
+    ctx->pc = imm;
 }
 
 void mini_puts(struct VMContext* ctx, const uint32_t instr) {
