@@ -32,7 +32,9 @@ void write_mem(struct VMContext* ctx, uint32_t addr, uint8_t val) {
 }
 
 // Implement Opcode function
-void mini_halt(struct VMContext* ctx, const uint32_t instr) {
+void mini_halt(__attribute__((unused)) struct VMContext* ctx,
+               __attribute__((unused)) const uint32_t instr)
+{
     is_running = false;
 }
 
