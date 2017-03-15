@@ -11,7 +11,7 @@
 
 // Global variable that indicates if the process is running.
 static bool is_running = true;
-void *heap = NULL;
+uint8_t *heap = NULL;
 
 void check_addr_range(uint32_t addr) {
     if (addr >= 8192) {
@@ -39,18 +39,14 @@ void mini_load(struct VMContext* ctx, const uint32_t instr) {
     const uint8_t r0 = EXTRACT_B1(instr);
     const uint8_t r1 = EXTRACT_B2(instr);
     const uint32_t addr = ctx->r[r1].value;
-    check_addr_range(addr);
-    uint32_t val = NULL;
-    memcpy(val, heap+addr, 1);
-    ctx->r[r0].value = val;
+    ctx->r[r0].value = read_mem(addr);
 }
 
 void mini_store(struct VMContext* ctx, const uint32_t instr) {
     const uint8_t r0 = EXTRACT_B1(instr);
     const uint8_t r1 = EXTRACT_B2(instr);
     const uint32_t addr = ctx->r[r0].value;
-    check_addr_range(addr);
-    memcpy(heap+addr, EXTRACT_B0(ctx->r[r1].value), 1);
+    write_mem(addr, EXTRACT_B0(ctx->r[r1].value));
 }
 
 void mini_move(struct VMContext* ctx, const uint32_t instr) {
@@ -125,9 +121,31 @@ void mini_jump(struct VMContext* ctx, const uint32_t instr) {
 }
 
 void mini_puts(struct VMContext* ctx, const uint32_t instr) {
+    const uint8_t r0 = EXTRACT_B1(instr);
+    uint32_t addr = ctx->r[r0].value;
+    uint8_t val;
+    while(true) {
+        val = read_mem(addr);
+        if (val) {
+            putchar(val);
+            addr++;
+        }
+        else
+            break;
+    }
 }
 
 void mini_gets(struct VMContext* ctx, const uint32_t instr) {
+    const uint8_t r0 = EXTRACT_B1(instr);
+    uint32_t addr = ctx->r[r0].value;
+    uint8_t val;
+    while(true) {
+        val = (uint8_t) getchar();
+        if (val == '\n') break;
+        write_mem(addr, val);
+        addr++;
+    }
+    write_mem(addr, '\0');
 }
 
 void usageExit() {
@@ -190,7 +208,7 @@ int main(int argc, char** argv) {
         return 1;
     }
 
-    heap = malloc(8192);
+    heap = (uint8_t*) malloc(8192);
     if (heap == NULL) {
         perror("malloc");
         return 1;
