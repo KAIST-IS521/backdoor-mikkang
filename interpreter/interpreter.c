@@ -13,7 +13,7 @@
 static bool is_running = true;
 
 void usageExit() {
-    // TODO: show usage
+    printf("[*]Usage: interpreter <bytecode>\n");
     exit(1);
 }
 
