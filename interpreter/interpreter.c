@@ -79,12 +79,33 @@ void mini_sub(struct VMContext* ctx, const uint32_t instr) {
 }
 
 void mini_gt(struct VMContext* ctx, const uint32_t instr) {
+    const uint8_t r0 = EXTRACT_B1(instr);
+    const uint8_t r1 = EXTRACT_B2(instr);
+    const uint8_t r2 = EXTRACT_B3(instr);
+    if (ctx->r[r1].value > ctx->r[r2].value)
+        ctx->r[r0].value = 1;
+    else
+        ctx->r[r0].value = 0;
 }
 
 void mini_ge(struct VMContext* ctx, const uint32_t instr) {
+    const uint8_t r0 = EXTRACT_B1(instr);
+    const uint8_t r1 = EXTRACT_B2(instr);
+    const uint8_t r2 = EXTRACT_B3(instr);
+    if (ctx->r[r1].value >= ctx->r[r2].value)
+        ctx->r[r0].value = 1;
+    else
+        ctx->r[r0].value = 0;
 }
 
 void mini_eq(struct VMContext* ctx, const uint32_t instr) {
+    const uint8_t r0 = EXTRACT_B1(instr);
+    const uint8_t r1 = EXTRACT_B2(instr);
+    const uint8_t r2 = EXTRACT_B3(instr);
+    if (ctx->r[r1].value == ctx->r[r2].value)
+        ctx->r[r0].value = 1;
+    else
+        ctx->r[r0].value = 0;
 }
 
 void mini_ite(struct VMContext* ctx, const uint32_t instr) {
