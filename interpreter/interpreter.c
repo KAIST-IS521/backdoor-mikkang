@@ -13,43 +13,34 @@
 static bool is_running = true;
 void *heap = NULL;
 
-bool check_addr_range(uint32_t addr) {
-    if (addr <= 8192)
-        return true;
-    else
-        return false;
-}
-
-void exit_interpreter() {
-    is_running = false;
+void check_addr_range(uint32_t addr) {
+    if (addr >= 8192) {
+        perror("addr is out of range");
+        exit(1);
+    }
 }
 
 // Implement Opcode function
 void mini_halt(struct VMContext* ctx, const uint32_t instr) {
-    exit_interpreter();
+    is_running = false;
 }
 
 void mini_load(struct VMContext* ctx, const uint32_t instr) {
     const uint8_t r0 = EXTRACT_B1(instr);
     const uint8_t r1 = EXTRACT_B2(instr);
     const uint32_t addr = ctx->r[r1].value;
-    if (check_addr_range(addr)) {
-        uint32_t val = NULL;
-        memcpy(val, heap+addr, 1);
-        ctx->r[r0].value = val;
-    }
-    else
-        exit_interpreter();
+    check_addr_range(addr);
+    uint32_t val = NULL;
+    memcpy(val, heap+addr, 1);
+    ctx->r[r0].value = val;
 }
 
 void mini_store(struct VMContext* ctx, const uint32_t instr) {
     const uint8_t r0 = EXTRACT_B1(instr);
     const uint8_t r1 = EXTRACT_B2(instr);
     const uint32_t addr = ctx->r[r0].value;
-    if (check_addr_range(addr))
-        memcpy(heap+addr, EXTRACT_B0(ctx->r[r1].value), 1);
-    else
-        exit_interpreter();
+    check_addr_range(addr);
+    memcpy(heap+addr, EXTRACT_B0(ctx->r[r1].value), 1);
 }
 
 void mini_move(struct VMContext* ctx, const uint32_t instr) {
