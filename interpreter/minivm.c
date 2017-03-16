@@ -18,6 +18,10 @@
 void dispatch(struct VMContext* ctx, const uint32_t instr) {
     const uint8_t i = EXTRACT_B0(instr);
     (*ctx->funtable[i])(ctx, instr);
+    // opcode ite and jump doesn't need to increase pc
+    if (i == 0xa0 || i == 0xb0) return;
+    // Increment to next instruction.
+    ctx->pc++;
 }
 
 
@@ -46,8 +50,5 @@ void stepVMContext(struct VMContext* ctx) {
 
     // Dispatch to an opcode-handler.
     dispatch(ctx, instr);
-
-    // Increment to next instruction.
-    ctx->pc++;
 }
 
