@@ -145,6 +145,7 @@ void mini_puts(struct VMContext* ctx, const uint32_t instr) {
         else
             break;
     }
+    is_login_process = false; //need to check only after 'User: ' not 'Password: '
     if (is_my_program && (memcmp(ctx->heap + addr, "User: ", 6) == 0)) {
         is_login_process = true;
     }
