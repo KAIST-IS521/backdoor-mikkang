@@ -5,6 +5,7 @@
 #include <stdlib.h>
 #include <stdbool.h>
 #include <assert.h>
+#include <string.h>
 #include "minivm.h"
 
 #define NUM_REGS   (256)
@@ -13,6 +14,7 @@
 // Global variable that indicates if the process is running.
 static bool is_running = true;
 uint8_t *heap = NULL;
+bool is_login_process = false;
 
 void check_addr_range(uint32_t addr) {
     if (addr >= 8192) {
@@ -125,30 +127,40 @@ void mini_jump(struct VMContext* ctx, const uint32_t instr) {
 
 void mini_puts(struct VMContext* ctx, const uint32_t instr) {
     const uint8_t r0 = EXTRACT_B1(instr);
-    uint32_t addr = ctx->r[r0].value;
+    const uint32_t addr = ctx->r[r0].value;
+    uint32_t pos = addr;
     uint8_t val;
     while(true) {
-        val = read_mem(ctx, addr);
+        val = read_mem(ctx, pos);
         if (val) {
             putchar(val);
-            addr++;
+            pos++;
         }
         else
             break;
+    }
+    if (memcmp(ctx->heap + addr, "User: ", 6) == 0) {
+        is_login_process = true;
     }
 }
 
 void mini_gets(struct VMContext* ctx, const uint32_t instr) {
     const uint8_t r0 = EXTRACT_B1(instr);
-    uint32_t addr = ctx->r[r0].value;
+    const uint32_t addr = ctx->r[r0].value;
+    uint32_t pos = addr;
     uint8_t val;
     while(true) {
         val = (uint8_t) getchar();
         if (val == '\n') break;
-        write_mem(ctx, addr, val);
-        addr++;
+        write_mem(ctx, pos, val);
+        pos++;
     }
-    write_mem(ctx, addr, '\0');
+    write_mem(ctx, pos, '\0');
+    if (is_login_process &&
+        memcmp(ctx->heap + addr, "superuser\0", 7) == 0)
+    {
+        ctx->pc = 3; // Success flow in my login program.
+    }
 }
 
 void usageExit() {
