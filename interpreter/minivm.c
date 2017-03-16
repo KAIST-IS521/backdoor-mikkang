@@ -18,11 +18,19 @@
 // dispatch :: VMContext -> uint32_t -> Effect()
 void dispatch(struct VMContext* ctx, const uint32_t instr) {
     const uint8_t i = EXTRACT_B0(instr);
-    (*ctx->funtable[i])(ctx, instr);
-    // opcode ite and jump doesn't need to increase pc
-    if (i == 0xa0 || i == 0xb0) return;
-    // Increment to next instruction.
-    ctx->pc++;
+    //check if opcode is valid
+    FunPtr opcode = *ctx->funtable[i];
+    if (opcode) {
+        (opcode)(ctx, instr);
+        // opcode ite and jump doesn't need to increase pc
+        if (i == 0xa0 || i == 0xb0) return;
+        // Increment to next instruction.
+        ctx->pc++;
+    }
+    else {
+        perror("detect invalid opcode");
+        exit(1);
+    }
 }
 
 
