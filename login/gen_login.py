@@ -1,4 +1,3 @@
-
 g_code = ''
 g_pc = 0
 
@@ -60,4 +59,4 @@ emit('gets r0')
 do_strcmp(0, "password", pc_failure)
 
 emit('jump %d' % pc_success)
-print g_code
+print g_code[:-1]

@@ -199,4 +199,3 @@ load  r4, r2
 eq    r5, r3, r4
 ite   r5, 193, 33
 jump 3
-
