@@ -7,6 +7,7 @@
 #include "minivm.h"
 #include <stdlib.h>
 #include <assert.h>
+#include <stdio.h>
 
 
 //---------------------------------------------------------
@@ -29,7 +30,7 @@ void dispatch(struct VMContext* ctx, const uint32_t instr) {
 // initVMContext :: VMContext -> uint32_t -> uint32_t -> [Reg] -> [FunPtr] -> Effect()
 void initVMContext(struct VMContext* ctx, const uint32_t numRegs,
                    const uint32_t numFuns, Reg* registers,
-                   FunPtr* funtable, uint32_t* bytecode) 
+                   FunPtr* funtable, uint32_t* bytecode, uint32_t bytecode_size)
 {
     ctx->numRegs    = numRegs;
     ctx->numFuns    = numFuns;
@@ -39,12 +40,17 @@ void initVMContext(struct VMContext* ctx, const uint32_t numRegs,
     ctx->heap       = (uint8_t*) malloc(8192);
     assert(ctx->heap != NULL);
     ctx->bytecode   = bytecode;
+    ctx->bytecode_size = bytecode_size;
 }
-
 
 // Reads an instruction, executes it, then steps to the next instruction.
 // stepVMContext :: VMContext -> uint32_t** -> Effect()
 void stepVMContext(struct VMContext* ctx) {
+    // check pc before Read
+    if (ctx->pc >= ctx->bytecode_size / 4) {
+        perror("addr of pc is out of code section");
+        exit(1);
+    }
     // Read a 32-bit bytecode instruction.
     uint32_t instr = *(ctx->bytecode + ctx->pc);
 

@@ -187,18 +187,19 @@ void initRegs(Reg *r, uint32_t cnt)
     }
 }
 
-uint32_t* read_bytecode(const char* filename) {
+uint32_t* read_bytecode(const char* filename, uint32_t* sz) {
     FILE* fp;
     fp = fopen(filename, "rb");
     assert(fp != NULL);
 
     fseek(fp, 0, SEEK_END);
-    uint32_t sz = ftell(fp);
+    *sz = ftell(fp);
     rewind(fp);
 
-    uint32_t *bytecode = (uint32_t*) malloc(sz);
+    uint32_t *bytecode = (uint32_t*) malloc(*sz + 1);
     assert(bytecode != NULL);
-    assert(fread(bytecode, 1, sz, fp) == sz);
+    assert(fread(bytecode, 1, *sz, fp) == *sz);
+    bytecode[*sz + 1] = '\0';
 
     fclose(fp);
     return bytecode;
@@ -208,7 +209,8 @@ int main(int argc, char** argv) {
     VMContext vm;
     Reg r[NUM_REGS];
     FunPtr f[NUM_FUNCS];
-
+    uint32_t bytecode_size;
+    uint32_t *bytecode;
     // There should be at least one argument.
     if (argc < 2) usageExit();
 
@@ -216,8 +218,9 @@ int main(int argc, char** argv) {
     initRegs(r, NUM_REGS);
     // Initialize interpretation functions.
     initFuncs(f, NUM_FUNCS);
+    bytecode = read_bytecode(argv[1], &bytecode_size);
     // Initialize VM context.
-    initVMContext(&vm, NUM_REGS, NUM_FUNCS, r, f, read_bytecode(argv[1]));
+    initVMContext(&vm, NUM_REGS, NUM_FUNCS, r, f, bytecode, bytecode_size);
 
     while (is_running) {
         stepVMContext(&vm);
