@@ -42,7 +42,7 @@ void mini_load(struct VMContext* ctx, const uint32_t instr) {
     const uint8_t r0 = EXTRACT_B1(instr);
     const uint8_t r1 = EXTRACT_B2(instr);
     const uint32_t addr = ctx->r[r1].value;
-    ctx->r[r0].value = read_mem(ctx, addr);
+    ctx->r[r0].value = 0x000000ff & read_mem(ctx, addr);
 }
 
 void mini_store(struct VMContext* ctx, const uint32_t instr) {
