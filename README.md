@@ -7,7 +7,7 @@
 * **./login/**
     * **gen_login.py**: python script to generate login.mini
         * `I forked from KAIST-IS521/backdoor-blukat29 repository`
-        * I just changed minor fix like removing whitespace
+        * I just changed minor fix like removing whitespace, adding my signature
         * I learned how to implement program in Mini language from his code
     * **login.mini**: login program written in Mini Language
     * **login.sh**: shell script to do test easily
