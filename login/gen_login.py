@@ -35,9 +35,10 @@ def do_strcmp(addr, string, bad):
         emit('ite   r5, %d, %d' % (g_pc + 1, bad))
 
 comment('; r0 is always 0, r1 is always 1.')
+emit("move  r237, r237")
 emit('puti  r0, 0')
 emit('puti  r1, 1')
-emit('jump  63') # address of the main routine.
+emit('jump  64') # address of the main routine.
 
 pc_success = g_pc
 do_puts(0, "Success\n")
