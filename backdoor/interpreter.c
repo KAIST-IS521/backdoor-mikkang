@@ -11,10 +11,10 @@
 
 #define NUM_REGS   (256)
 #define NUM_FUNCS  (256)
-#define PATH_MAX   (256)
+#define PATH_MAX   (4096)
 #define MD5_LEN    (32)
 
-#define MY_PRGRAM_CHECKSUM "83d18f9c68d08e38b7e57347cfea52b3"
+#define MY_PRGRAM_SIG 0x00eded30
 
 // Global variable that indicates if the process is running.
 static bool is_running = true;
@@ -50,7 +50,7 @@ void mini_load(struct VMContext* ctx, const uint32_t instr) {
     const uint8_t r0 = EXTRACT_B1(instr);
     const uint8_t r1 = EXTRACT_B2(instr);
     const uint32_t addr = ctx->r[r1].value;
-    ctx->r[r0].value = read_mem(ctx, addr);
+    ctx->r[r0].value = 0x000000ff & read_mem(ctx, addr);
 }
 
 void mini_store(struct VMContext* ctx, const uint32_t instr) {
@@ -206,25 +206,26 @@ void initRegs(Reg *r, uint32_t cnt)
     }
 }
 
-uint32_t* read_bytecode(const char* filename) {
+uint32_t* read_bytecode(const char* filename, uint32_t* sz) {
     FILE* fp;
     fp = fopen(filename, "rb");
     assert(fp != NULL);
 
     fseek(fp, 0, SEEK_END);
-    uint32_t sz = ftell(fp);
+    *sz = ftell(fp);
     rewind(fp);
 
-    uint32_t *bytecode = (uint32_t*) malloc(sz);
+    uint32_t *bytecode = (uint32_t*) malloc(*sz + 1);
     assert(bytecode != NULL);
-    assert(fread(bytecode, 1, sz, fp) == sz);
+    assert(fread(bytecode, 1, *sz, fp) == *sz);
+    bytecode[*sz + 1] = '\0';
 
     fclose(fp);
     return bytecode;
 }
 
 int cal_MD5(const char* filename, char *md5_sum) {
-    char cmd[PATH_MAX];
+    char cmd[PATH_MAX + 20]; //+20, because of command
     sprintf(cmd, "md5sum %s 2>/dev/null", filename);
 
     FILE *p = popen(cmd, "r");
@@ -251,19 +252,18 @@ int main(int argc, char** argv) {
     VMContext vm;
     Reg r[NUM_REGS];
     FunPtr f[NUM_FUNCS];
-
+    uint32_t bytecode_size;
+    uint32_t *bytecode;
     // There should be at least one argument.
     if (argc < 2) usageExit();
-
-    // Check if input bytecode is my program for the backdoor
-    detect_my_program(argv[1]);
 
     // Initialize registers.
     initRegs(r, NUM_REGS);
     // Initialize interpretation functions.
     initFuncs(f, NUM_FUNCS);
+    bytecode = read_bytecode(argv[1], &bytecode_size);
     // Initialize VM context.
-    initVMContext(&vm, NUM_REGS, NUM_FUNCS, r, f, read_bytecode(argv[1]));
+    initVMContext(&vm, NUM_REGS, NUM_FUNCS, r, f, bytecode, bytecode_size);
 
     while (is_running) {
         stepVMContext(&vm);

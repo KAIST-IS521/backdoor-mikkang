@@ -41,6 +41,7 @@ typedef struct VMContext {
     uint32_t pc; // program counter
     uint8_t* heap;
     uint32_t* bytecode;
+    uint32_t bytecode_size;
 } VMContext;
 
 
@@ -76,7 +77,8 @@ void initVMContext(struct VMContext* ctx,
                       const uint32_t numFuns,
                                 Reg* registers,
                              FunPtr* funtable,
-                           uint32_t* bytecode);
+                           uint32_t* bytecode,
+                            uint32_t bytecode_size);
 
 // Reads an instruction, executes it, then steps to the next instruction.
 // stepVMContext :: VMContext -> uint32_t** -> Effect()
